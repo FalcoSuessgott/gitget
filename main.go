@@ -5,7 +5,7 @@ import (
 )
 
 func main(){
-    repo  := "https://github.com/markbates/pkger.git"
+    repo  := "https://github.com/markbates/pkger"
 
     fmt.Printf("Fetching %s\n", repo)
 
@@ -21,6 +21,6 @@ func main(){
         fmt.Println(err)
     }
 
-    fmt.Print(branches)
-    promptList("Branches", "master", branches)
+   choosenBranch := promptList("Branches", "master", branches)
+   
 }
