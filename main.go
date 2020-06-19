@@ -22,5 +22,14 @@ func main(){
     }
 
    choosenBranch := promptList("Branches", "master", branches)
-   
+
+   checkoutBranch(r, choosenBranch)
+
+   files, err := listFiles()
+
+   if err != nil {
+    fmt.Println(err)
+   }
+
+   promptList("Checkout files", "README.md", files)
 }
