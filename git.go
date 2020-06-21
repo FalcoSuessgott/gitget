@@ -11,6 +11,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/storer"
+
 )
 
 type Repository struct {
@@ -81,6 +82,18 @@ func (r *Repository) checkoutBranch(branch string) error {
 	})
 	
 	return err
+}
+
+func createFile(path string, content []byte) error {
+	err := ioutil.WriteFile(path, content, os.FileMode(0644))
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%s created.\n", path)
+
+	return nil
 }
 
 func (r *Repository) getFileContent(path string) ([]byte, error) {

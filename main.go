@@ -1,9 +1,12 @@
 package main 
 
 import (
-    "fmt"
-    "strings"
-    "strconv"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+
+	"github.com/whilp/git-urls"
 )
 
 var (
@@ -12,7 +15,14 @@ var (
 )
 
 func main(){
-    link  := "https://github.com/FalcoSuessgott/dotfiles"
+    link  := os.Args[1]
+
+    _, err := giturls.Parse(link)
+
+    if err != nil {
+        fmt.Println("Invalid git url")
+        os.Exit(1)
+    }
 
     fmt.Printf("Fetching %s\n", link)
 
@@ -21,11 +31,10 @@ func main(){
     
     if err != nil {
         fmt.Println(err)
+        os.Exit(1)
     }
 
     r.Branches, err = r.getBranches()
-
-    fmt.Print(r.Path)
 
     if err != nil {
         fmt.Println(err)
@@ -37,6 +46,7 @@ func main(){
         choosenBranch = promptList("Branches", "master", r.Branches)
     } 
 
+    fmt.Println("Checking out the only branch: " + r.Branches[0])
     r.checkoutBranch(choosenBranch)
 
     r.Files = r.listFiles()
@@ -46,7 +56,6 @@ func main(){
         fmt.Println(err)
     }
 
-
     selectedFiles := multiSelect("Which files to import", r.indexTree())
     selectedFilesIndexes := []int{}
 
@@ -55,10 +64,11 @@ func main(){
         selectedFilesIndexes = append(selectedFilesIndexes, index)
     }
 
-
     for _, i := range selectedFilesIndexes{
         content, _ := r.getFileContent(r.Files[i])
-        fmt.Println(string(content))
+        path := strings.Split(r.Files[i], "/")
+        fileName := path[len(path)-1]
+        createFile(fileName, content)
     }
 }   
 
