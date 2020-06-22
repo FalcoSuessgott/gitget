@@ -45,8 +45,6 @@ func cloneRepo(url string) (*git.Repository, string, error) {
 		return nil, dir, err
 	}
 
-	//defer os.RemoveAll(dir)
-
 	r, err := git.PlainClone(dir, false, &git.CloneOptions{URL: url})
 	
 	if err != nil {
@@ -96,6 +94,17 @@ func createFile(path string, content []byte) error {
 	return nil
 }
 
+func createDirectory(path string) error {
+	err := os.MkdirAll(path, os.ModePerm)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%s created directory.\n", path)
+	return nil
+}
+
 func (r *Repository) getFileContent(path string) ([]byte, error) {
 	file, err := os.Open(path)
 
@@ -111,10 +120,13 @@ func (r *Repository) getFileContent(path string) ([]byte, error) {
         return nil, err
 	}
 
+	if len(b) == 0 {
+		return nil, fmt.Errorf("Is directory")
+	}
+
 	return b, nil
 }
-
-func (r *Repository) listFiles() []string {
+func (r *Repository) listFiles(path string) []string {
 
 	files := []string{}
 
@@ -124,7 +136,7 @@ func (r *Repository) listFiles() []string {
 		fmt.Println(err)
 	}
 
-	err = filepath.Walk(r.Path,
+	err = filepath.Walk(path,
 		func(dir string, info os.FileInfo, err error) error {
 
 			if err != nil {

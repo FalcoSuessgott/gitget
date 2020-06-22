@@ -49,12 +49,13 @@ func main(){
     fmt.Println("Checking out the only branch: " + r.Branches[0])
     r.checkoutBranch(choosenBranch)
 
-    r.Files = r.listFiles()
+    r.Files = r.listFiles(r.Path)
     r.Tree, err = r.buildDirectoryTree()
 
     if err != nil {
         fmt.Println(err)
     }
+
 
     selectedFiles := multiSelect("Which files to import", r.indexTree())
     selectedFilesIndexes := []int{}
@@ -65,10 +66,32 @@ func main(){
     }
 
     for _, i := range selectedFilesIndexes{
-        content, _ := r.getFileContent(r.Files[i])
+        content, err := r.getFileContent(r.Files[i])
         path := strings.Split(r.Files[i], "/")
         fileName := path[len(path)-1]
-        createFile(fileName, content)
+        
+        if err != nil {
+            createDirectory(fileName)
+            subFiles := r.listFiles(r.Files[i])
+                        
+            for j, f := range subFiles {
+                subPath := strings.Split(f, "/")
+                subFileName := subPath[len(subPath)-1]
+                if j == 0 {
+                    continue
+                }
+
+                content, err := r.getFileContent(subFiles[j])
+    
+                if err != nil {
+                    fmt.Println(err.Error() + " while creating ")
+                }
+    
+                createFile(fileName + "/" + subFileName, content)
+            }
+        } else {
+            createFile(fileName, content)
+        }
     }
 }   
 
@@ -79,8 +102,10 @@ func GetStringInBetween(str string, start string, end string) (result string) {
     }
     s += len(start)
     e := strings.Index(str, end)
+
     if e == -1 {
         return
     }
+
     return str[s:e]
 }
