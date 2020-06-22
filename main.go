@@ -14,6 +14,12 @@ var (
     r Repository
 )
 
+//TODO: progressbar for cloning
+//TODO: tree view for created files
+//TODO: recursion for directories
+//TODO: format code
+//TODO: get uri from copy buffer
+
 func main(){
     link  := os.Args[1]
 
