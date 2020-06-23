@@ -14,7 +14,6 @@ var (
     r Repository
 )
 
-//TODO: progressbar for cloning
 //TODO: tree view for created files
 //TODO: recursion for directories
 //TODO: format code
@@ -30,7 +29,7 @@ func main(){
         os.Exit(1)
     }
 
-    fmt.Printf("Fetching %s\n", link)
+    fmt.Printf("Fetching %s\n\n", link)
 
     r.URL = link
     r.Repo, r.Path, err  = cloneRepo(r.URL)
@@ -49,10 +48,10 @@ func main(){
     choosenBranch := r.Branches[0]
 
     if len(r.Branches) > 1 { 
-        choosenBranch = promptList("Branches", "master", r.Branches)
+        choosenBranch = promptList("Choose the branch to be checked out", "master", r.Branches)
     } 
 
-    fmt.Println("Checking out the only branch: " + r.Branches[0])
+    fmt.Println("\nChecking out the only branch: " + r.Branches[0])
     r.checkoutBranch(choosenBranch)
 
     r.Files = r.listFiles(r.Path)
@@ -62,8 +61,7 @@ func main(){
         fmt.Println(err)
     }
 
-
-    selectedFiles := multiSelect("Which files to import", r.indexTree())
+    selectedFiles := multiSelect("Select files and directories to be imported", r.indexTree())
     selectedFilesIndexes := []int{}
 
     for _, file := range selectedFiles {
@@ -72,46 +70,48 @@ func main(){
     }
 
     for _, i := range selectedFilesIndexes{
-        content, err := r.getFileContent(r.Files[i])
-        path := strings.Split(r.Files[i], "/")
-        fileName := path[len(path)-1]
-        
-        if err != nil {
-            createDirectory(fileName)
-            subFiles := r.listFiles(r.Files[i])
-                        
-            for j, f := range subFiles {
-                subPath := strings.Split(f, "/")
-                subFileName := subPath[len(subPath)-1]
-                if j == 0 {
-                    continue
-                }
+    
+        if isFile(r.Files[i]); err != nil {
+            content, err := r.getFileContent(r.Files[i])
+            path := strings.Split(r.Files[i], "/")
+            fileName := path[len(path)-1]
 
-                content, err := r.getFileContent(subFiles[j])
-    
-                if err != nil {
-                    fmt.Println(err.Error() + " while creating ")
-                }
-    
-                createFile(fileName + "/" + subFileName, content)
+            if err != nil {
+                fmt.Printf("Error while reading file: %s.(Err: %v)\n",r.Files[i], err)
             }
-        } else {
+
             createFile(fileName, content)
+        } else {
+            downloadDirectory(r.Files[i])   
         }
     }
 }   
 
-func GetStringInBetween(str string, start string, end string) (result string) {
-    s := strings.Index(str, start)
-    if s == -1 {
-        return
-    }
-    s += len(start)
-    e := strings.Index(str, end)
+func downloadDirectory(dir string) {
+    path := strings.Split(dir, "/")
+    dirName := path[len(path)-1]
+      
+    createDirectory(dirName) 
+    subFiles := r.listFiles(dir)
 
-    if e == -1 {
-        return
+    for j, f := range subFiles {
+        subPath := strings.Split(f, "/")
+        subFileName := subPath[len(subPath)-1]
+        
+        if j == 0 {
+            continue
+        }
+    
+        if isFile(f); err != nil {
+            content, err := r.getFileContent(subFiles[j])
+        
+            if err != nil {
+                fmt.Println(err.Error() + " while creating ")
+            }
+        
+            createFile(dirName + "/" + subFileName, content)
+        } else {
+            downloadDirectory(f)
+        }
     }
-
-    return str[s:e]
 }
