@@ -5,8 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/whilp/git-urls"
+    "github.com/whilp/git-urls"
 )
 
 var (
@@ -15,7 +14,6 @@ var (
 )
 
 //TODO: tree view for created files
-//TODO: recursion for directories
 //TODO: format code
 //TODO: get uri from copy buffer
 
@@ -70,48 +68,23 @@ func main(){
     }
 
     for _, i := range selectedFilesIndexes{
-    
+        path := strings.Split(r.Files[i], "/")
+        name := path[len(path)-1]
+
         if isFile(r.Files[i]); err != nil {
             content, err := r.getFileContent(r.Files[i])
-            path := strings.Split(r.Files[i], "/")
-            fileName := path[len(path)-1]
 
             if err != nil {
                 fmt.Printf("Error while reading file: %s.(Err: %v)\n",r.Files[i], err)
             }
 
-            createFile(fileName, content)
+            createFile(name, content)
         } else {
-            downloadDirectory(r.Files[i])   
+            err := CopyDir(r.Files[i],name)
+            
+            if err != nil {
+                fmt.Println(err)
+            }  
         }
     }
 }   
-
-func downloadDirectory(dir string) {
-    path := strings.Split(dir, "/")
-    dirName := path[len(path)-1]
-      
-    createDirectory(dirName) 
-    subFiles := r.listFiles(dir)
-
-    for j, f := range subFiles {
-        subPath := strings.Split(f, "/")
-        subFileName := subPath[len(subPath)-1]
-        
-        if j == 0 {
-            continue
-        }
-    
-        if isFile(f); err != nil {
-            content, err := r.getFileContent(subFiles[j])
-        
-            if err != nil {
-                fmt.Println(err.Error() + " while creating ")
-            }
-        
-            createFile(dirName + "/" + subFileName, content)
-        } else {
-            downloadDirectory(f)
-        }
-    }
-}
