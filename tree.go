@@ -6,14 +6,19 @@ import (
 	"strings"
 	"path/filepath"
 	"os"
+	"strconv"
 )
 
 func (r *Repository) indexTree() []string{
 
 	tree := []string{}
 
+	lenx := len(r.Files)
+
+	length := len(strconv.Itoa(lenx))
+
 	for i, element := range strings.Split(r.Tree.Print(),"\n") {
-		tree = append(tree, fmt.Sprintf("[%d] %s", i, element))
+		tree = append(tree, fmt.Sprintf("[%*d] %s", length, i, element))
 	}
 
 	return tree
