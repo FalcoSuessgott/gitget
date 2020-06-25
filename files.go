@@ -45,18 +45,14 @@ func fileOrDirExists(path string) (bool ,error){
 	return true, nil
 }
 
-func isFile(path string) (bool, error){
-	file, err := os.Stat(path)
-
-	if err != nil {
-        return false, err
-	}
+func isFile(path string) bool {
+	file, _ := os.Stat(path)
 
     if file.IsDir() {
-		return true, nil
+		return true
 	}
 
-	return false, nil
+	return false
 }
 func (r *Repository) getFileContent(path string) ([]byte, error) {
 
@@ -122,6 +118,7 @@ func GetStringInBetween(str string, start string, end string) (result string) {
     return str[s:e]
 }
 
+//https://gist.github.com/r0l1/92462b38df26839a3ca324697c8cba04
 func CopyFile(src, dst string) (err error) {
 	in, err := os.Open(src)
 	if err != nil {
@@ -161,6 +158,7 @@ func CopyFile(src, dst string) (err error) {
 	return
 }
 
+//https://gist.github.com/r0l1/92462b38df26839a3ca324697c8cba04
 func CopyDir(src string, dst string) (err error) {
 
 

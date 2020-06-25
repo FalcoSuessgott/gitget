@@ -1,12 +1,14 @@
 package main
 
 import (
-	"github.com/disiqueira/gotree"
 	"fmt"
-	"strings"
-	"path/filepath"
 	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
+
+	"github.com/disiqueira/gotree"
+	"github.com/go-git/go-git/v5"
 )
 
 func (r *Repository) indexTree() []string{
@@ -24,31 +26,26 @@ func (r *Repository) indexTree() []string{
 	return tree
 }
 
-func (r *Repository) buildDirectoryTree() (gotree.Tree, error) {
-
-	_, err := r.Repo.Worktree()
-
-	if err != nil {
-		return nil, err
-	}
-
-	i := 1
-	shortPath := strings.Split(r.URL, "/")[4:]
-	name := r.Path[strings.LastIndex(r.Path, "/")+1:]
+func buildDirectoryTree(url, path string) (gotree.Tree, error) {
+	
+	i := 0
+	shortPath := strings.Split(url, "/")[4:]
+	name := path[strings.LastIndex(path, "/")+1:]
 	tree := gotree.New(strings.Join(shortPath, "/"))
 
-	err = filepath.Walk(r.Path,
+
+	if filepath.Walk(path,
 		func(dir string, info os.FileInfo, err error) error {
 
 			if err != nil {
 				return err
 			}
 
-			if info.IsDir() && info.Name() == ".git" {
+			if info.IsDir() && info.Name() == git.GitDirName {
 				return filepath.SkipDir
 			}
 
-			if name == r.Path[strings.LastIndex(r.Path, "/")+1:] && !info.IsDir() {
+			if name == path[strings.LastIndex(path, "/")+1:] && !info.IsDir() {
 				tree.Add(info.Name())
 			}
 
@@ -59,9 +56,7 @@ func (r *Repository) buildDirectoryTree() (gotree.Tree, error) {
 				return filepath.SkipDir
 			}
 			return nil
-		})
-
-	if err != nil {
+		}); err != nil {
 		return nil, err
 	}
 

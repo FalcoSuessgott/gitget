@@ -5,7 +5,9 @@ import (
 	"os"
 	"strconv"
 	"strings"
-    "github.com/whilp/git-urls"
+
+	"github.com/disiqueira/gotree"
+	"github.com/whilp/git-urls"
 )
 
 var (
@@ -13,9 +15,8 @@ var (
     r Repository
 )
 
-//TODO: tree view for created files
 //TODO: format code
-//TODO: get uri from copy buffer
+
 
 func main(){
     link  := os.Args[1]
@@ -52,8 +53,9 @@ func main(){
     fmt.Println("\nChecking out the only branch: " + r.Branches[0])
     r.checkoutBranch(choosenBranch)
 
+
     r.Files = r.listFiles(r.Path)
-    r.Tree, err = r.buildDirectoryTree()
+    r.Tree, err = buildDirectoryTree(r.URL, r.Path)
 
     if err != nil {
         fmt.Println(err)
@@ -67,24 +69,25 @@ func main(){
         selectedFilesIndexes = append(selectedFilesIndexes, index)
     }
 
+
+   tree := gotree.New(".")
+
     for _, i := range selectedFilesIndexes{
+        tree.AddTree(buildSubdirectoryTree(r.Files[i]))
         path := strings.Split(r.Files[i], "/")
         name := path[len(path)-1]
 
-        if isFile(r.Files[i]); err != nil {
-            content, err := r.getFileContent(r.Files[i])
-
-            if err != nil {
-                fmt.Printf("Error while reading file: %s.(Err: %v)\n",r.Files[i], err)
+        if !isFile(r.Files[i]) {
+            if CopyFile(r.Files[i], name); err != nil {
+                fmt.Printf("Error while creating file: %s.(Err: %v)\n",r.Files[i], err)
             }
-
-            createFile(name, content)
         } else {
-            err := CopyDir(r.Files[i],name)
-            
-            if err != nil {
-                fmt.Println(err)
-            }  
+            if CopyDir(r.Files[i],name); err != nil {
+                fmt.Printf("Error while creating directory: %s.(Err: %v)\n",r.Files[i], err)
+            }
         }
     }
+
+    fmt.Println("\nFetched the following files and directories: ")
+    fmt.Print(tree.Print())
 }   
