@@ -19,22 +19,20 @@ var (
 //SSH clone
 
 func main(){
-    
-    if len(os.Args) != 2 {
-        fmt.Println("Missing or too much arguments. Exiting.")
+    buf, _ := clipboard.ReadAll()
+
+    if len(os.Args) == 1 && isValidGitURL(buf)  {
+        fmt.Printf("Using git url from clipboard. ", strings.TrimSpace(buf))
+        url = buf
+    }
+
+    if len(os.Args) > 2 {
+        fmt.Println("Too many arguments. Exiting.")
         os.Exit(1)
     }
 
     url = os.Args[1]
-    buf, _ := clipboard.ReadAll()
-
-    if isValidGitURL(buf){
-        if yn("Using " + strings.TrimSpace(buf) + " from clipboard?"){
-            url = buf
-        }
-    }
-
-   r := NewRepository(url)
+    r := NewRepository(url)
 
     selectedFiles := multiSelect("Select files and directories to be imported", r.indexTree())
     selectedFilesIndexes := []int{}

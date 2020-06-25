@@ -28,6 +28,7 @@ func isValidGitURL(url string) bool {
     if err != nil {
 		return false
 	}	
+	
 	return true
 }
 
@@ -108,7 +109,7 @@ func NewRepository(url string) Repository{
     fmt.Printf("Fetching %s\n\n", os.Args[1])
     
     r.URL = url
-    r.Repo, r.Path, err  = cloneRepo(r.URL)
+    r.Repo, r.Path, err  = cloneRepo(url)
     
     if err != nil {
         fmt.Println("Error while cloning. Exiting.")
