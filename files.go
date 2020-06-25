@@ -69,15 +69,9 @@ func (r *Repository) getFileContent(path string) ([]byte, error) {
 	return b, nil
 }
 
-func (r *Repository) listFiles(path string) []string {
+func listFiles(path string) []string {
 
 	files := []string{}
-
-	_, err := r.Repo.Worktree()
-
-	if err != nil {
-		fmt.Println(err)
-	}
 
 	err = filepath.Walk(path,
 		func(dir string, info os.FileInfo, err error) error {

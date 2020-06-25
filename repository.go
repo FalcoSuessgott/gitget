@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-
+    "github.com/whilp/git-urls"
 	"github.com/disiqueira/gotree"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -17,11 +17,21 @@ type Repository struct {
     Repo *git.Repository
 	Path string
 	Branches []string
+	Branch string
 	Files []string
 	Tree gotree.Tree
 }
 
-func (r *Repository) getBranches() ([]string, error) {
+func isValidGitURL(url string) bool {
+	_, err := giturls.Parse(url)
+
+    if err != nil {
+		return false
+	}	
+	return true
+}
+
+func getBranches(repo *git.Repository) ([]string, error) {
 
 	var branches []string
 
@@ -69,9 +79,9 @@ func remoteBranches(s storer.ReferenceStorer) (storer.ReferenceIter, error) {
 	}, refs), nil
 }
 
-func (r *Repository) checkoutBranch(branch string) error {
+func checkoutBranch(repo *git.Repository, branch string) error {
 
-	w, err  := r.Repo.Worktree()
+	w, err  := repo.Worktree()
 
 	if err != nil {
 		return err
@@ -85,3 +95,49 @@ func (r *Repository) checkoutBranch(branch string) error {
 	return err
 }
 
+func NewRepository(url string) Repository{
+
+	var r Repository
+	_, err = giturls.Parse(url)
+
+    if err != nil {
+        fmt.Println("Invalid git url. Exiting.")
+        os.Exit(1)
+    }
+
+    fmt.Printf("Fetching %s\n\n", os.Args[1])
+    
+    r.URL = url
+    r.Repo, r.Path, err  = cloneRepo(r.URL)
+    
+    if err != nil {
+        fmt.Println("Error while cloning. Exiting.")
+        os.Exit(1)
+    }
+
+    r.Branches, err = getBranches(r.Repo)
+
+    if err != nil {
+        fmt.Println("Error while receiving Branches. Exiting.")
+    }
+
+	if len(r.Branches) == 1 {
+		fmt.Println("\nChecking out the only branch: " + r.Branches[0])
+		r.Branch = r.Branches[0]
+	} else {
+		r.Branch = promptList("Choose the branch to be checked out", "master", r.Branches)
+	}
+
+	if checkoutBranch(r.Repo, r.Branch); err != nil {
+		fmt.Println("Error while checking out branch " + r.Branch + " .Exiting.")
+	}
+
+	r.Files = listFiles(r.Path)
+    r.Tree, err = buildDirectoryTree(r.URL, r.Path)
+
+    if err != nil {
+        fmt.Println(err)
+	}
+	
+	return r
+}

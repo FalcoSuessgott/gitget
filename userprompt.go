@@ -6,6 +6,22 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 )
 
+func yn(msg string) bool {
+	res := false
+	prompt := &survey.Confirm{
+    	Message: msg,
+	}
+	
+	err := survey.AskOne(prompt, &res)
+
+	if err != nil {
+		fmt.Println("Exiting.")
+		os.Exit(0)
+	}
+
+	return res
+}
+
 func promptList(msg, def string, options []string) string {
 	// https://github.com/AlecAivazis/survey/issues/101
 	// https://github.com/AlecAivazis/survey/issues/101#issuecomment-420923209

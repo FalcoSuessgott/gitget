@@ -5,61 +5,36 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
 	"github.com/disiqueira/gotree"
-	"github.com/whilp/git-urls"
+    "github.com/atotto/clipboard"
 )
 
 var (
+    url string
     err error
     r Repository
 )
 
 //TODO: format code
-
+//SSH clone
 
 func main(){
-    link  := os.Args[1]
-
-    _, err := giturls.Parse(link)
-
-    if err != nil {
-        fmt.Println("Invalid git url")
-        os.Exit(1)
-    }
-
-    fmt.Printf("Fetching %s\n\n", link)
-
-    r.URL = link
-    r.Repo, r.Path, err  = cloneRepo(r.URL)
     
-    if err != nil {
-        fmt.Println(err)
+    if len(os.Args) != 2 {
+        fmt.Println("Missing or too much arguments. Exiting.")
         os.Exit(1)
     }
 
-    r.Branches, err = r.getBranches()
+    url = os.Args[1]
+    buf, _ := clipboard.ReadAll()
 
-    if err != nil {
-        fmt.Println(err)
+    if isValidGitURL(buf){
+        if yn("Using " + strings.TrimSpace(buf) + " from clipboard?"){
+            url = buf
+        }
     }
 
-    choosenBranch := r.Branches[0]
-
-    if len(r.Branches) > 1 { 
-        choosenBranch = promptList("Choose the branch to be checked out", "master", r.Branches)
-    } 
-
-    fmt.Println("\nChecking out the only branch: " + r.Branches[0])
-    r.checkoutBranch(choosenBranch)
-
-
-    r.Files = r.listFiles(r.Path)
-    r.Tree, err = buildDirectoryTree(r.URL, r.Path)
-
-    if err != nil {
-        fmt.Println(err)
-    }
+   r := NewRepository(url)
 
     selectedFiles := multiSelect("Select files and directories to be imported", r.indexTree())
     selectedFilesIndexes := []int{}
@@ -70,7 +45,8 @@ func main(){
     }
 
 
-   tree := gotree.New(".")
+    pwd, _ := os.Getwd()
+    tree := gotree.New(pwd)
 
     for _, i := range selectedFilesIndexes{
         tree.AddTree(buildSubdirectoryTree(r.Files[i]))
