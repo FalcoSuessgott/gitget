@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/disiqueira/gotree"
@@ -14,25 +13,22 @@ import (
 func (r *Repository) indexTree() []string{
 
 	tree := []string{}
-
-	lenx := len(r.Files)
-
-	length := len(strconv.Itoa(lenx))
-
 	for i, element := range strings.Split(r.Tree.Print(),"\n") {
-		tree = append(tree, fmt.Sprintf("[%*d] %s", length, i, element))
+		if i == 0 {
+			tree = append(tree, fmt.Sprintf("%s", element))
+			continue
+		} 
+		tree = append(tree, fmt.Sprintf("[%02d] %s", i, element))
 	}
 
-	return tree
+	return tree[:len(tree)-1]
 }
 
 func buildDirectoryTree(url, path string) (gotree.Tree, error) {
 	
 	i := 0
-	shortPath := strings.Split(url, "/")[4:]
 	name := path[strings.LastIndex(path, "/")+1:]
-	tree := gotree.New(strings.Join(shortPath, "/"))
-
+	tree := gotree.New(url)
 
 	if filepath.Walk(path,
 		func(dir string, info os.FileInfo, err error) error {
@@ -57,8 +53,8 @@ func buildDirectoryTree(url, path string) (gotree.Tree, error) {
 			}
 			return nil
 		}); err != nil {
-		return nil, err
-	}
+			return nil, err
+		}
 
 	return tree, nil
 }

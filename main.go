@@ -19,19 +19,25 @@ var (
 //SSH clone
 
 func main(){
-    buf, _ := clipboard.ReadAll()
-
-    if len(os.Args) == 1 && isValidGitURL(buf)  {
-        fmt.Printf("Using git url from clipboard. ", strings.TrimSpace(buf))
-        url = buf
-    }
-
     if len(os.Args) > 2 {
         fmt.Println("Too many arguments. Exiting.")
         os.Exit(1)
     }
 
-    url = os.Args[1]
+    buf, _ := clipboard.ReadAll()
+
+    if len(os.Args) == 1 && isValidGitURL(buf)  {
+        fmt.Println("Using git url from clipboard. ")
+        url = buf
+    } else {
+        if len(os.Args) == 1 {
+            fmt.Println("No git url passed. Exiting.")
+            Usage()
+            os.Exit(1)
+        }
+        url = os.Args[1]
+    }
+
     r := NewRepository(url)
 
     selectedFiles := multiSelect("Select files and directories to be imported", r.indexTree())
@@ -41,7 +47,6 @@ func main(){
         index, _ := strconv.Atoi(GetStringInBetween(file, "[", "]"))
         selectedFilesIndexes = append(selectedFilesIndexes, index)
     }
-
 
     pwd, _ := os.Getwd()
     tree := gotree.New(pwd)
@@ -63,5 +68,9 @@ func main(){
     }
 
     fmt.Println("\nFetched the following files and directories: ")
-    fmt.Print(tree.Print())
+    fmt.Println(tree.Print())
 }   
+
+func Usage() {
+    fmt.Fprintf(os.Stderr, "Usage:\n\tgitget GIT_URL\n")
+}

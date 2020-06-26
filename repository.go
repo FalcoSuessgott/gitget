@@ -23,20 +23,24 @@ type Repository struct {
 }
 
 func isValidGitURL(url string) bool {
-	_, err := giturls.Parse(url)
+	if giturls.Transports.Valid(url) {
+		return true
+	}
+	return false
+}
 
-    if err != nil {
-		return false
-	}	
-	
-	return true
+func getGitURI(url string) string{
+
+	parsedURL, _ := giturls.Parse(url)
+
+	return parsedURL.String()
 }
 
 func getBranches(repo *git.Repository) ([]string, error) {
 
 	var branches []string
 
-	bs, _ := remoteBranches(r.Repo.Storer)
+	bs, _ := remoteBranches(repo.Storer)
 
 	bs.ForEach(func(b *plumbing.Reference) error {
 		name := strings.Split(b.Name().String(), "/")[3:]
@@ -98,7 +102,6 @@ func checkoutBranch(repo *git.Repository, branch string) error {
 
 func NewRepository(url string) Repository{
 
-	var r Repository
 	_, err = giturls.Parse(url)
 
     if err != nil {
@@ -106,39 +109,47 @@ func NewRepository(url string) Repository{
         os.Exit(1)
     }
 
-    fmt.Printf("Fetching %s\n\n", os.Args[1])
+    fmt.Printf("Fetching %s\n\n", url)
     
-    r.URL = url
-    r.Repo, r.Path, err  = cloneRepo(url)
+    repo, path, err  := cloneRepo(url)
     
     if err != nil {
         fmt.Println("Error while cloning. Exiting.")
         os.Exit(1)
     }
 
-    r.Branches, err = getBranches(r.Repo)
+    branches, err := getBranches(repo)
 
     if err != nil {
         fmt.Println("Error while receiving Branches. Exiting.")
     }
 
-	if len(r.Branches) == 1 {
-		fmt.Println("\nChecking out the only branch: " + r.Branches[0])
-		r.Branch = r.Branches[0]
+	branch := ""
+	if len(branches) == 1 {
+		fmt.Println("\nChecking out the only branch: " + branches[0])
+		branch = branches[0]
 	} else {
-		r.Branch = promptList("Choose the branch to be checked out", "master", r.Branches)
+		branch = promptList("Choose the branch to be checked out", "master", branches)
 	}
 
-	if checkoutBranch(r.Repo, r.Branch); err != nil {
-		fmt.Println("Error while checking out branch " + r.Branch + " .Exiting.")
+	if checkoutBranch(repo, branch); err != nil {
+		fmt.Println("Error while checking out branch " + branch + " .Exiting.")
 	}
 
-	r.Files = listFiles(r.Path)
-    r.Tree, err = buildDirectoryTree(r.URL, r.Path)
+	files := listFiles(path)
+    tree, err := buildDirectoryTree(url, path)
 
     if err != nil {
         fmt.Println(err)
 	}
 	
-	return r
+	return Repository{
+		URL: url,
+		Branch: branch,
+		Branches: branches,
+		Files: files,
+		Path: path,
+		Repo: repo,
+		Tree: tree,
+	}
 }

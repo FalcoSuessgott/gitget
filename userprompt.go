@@ -56,7 +56,7 @@ func multiSelect(msg string, elements []string) []string{
 		Options: elements,
 	}
 	
-	err := survey.AskOne(prompt, &selectedFiles, survey.WithPageSize(75))
+	err := survey.AskOne(prompt, &selectedFiles, survey.WithPageSize(25))
 
 	if err != nil {
 		fmt.Println("Exiting.")

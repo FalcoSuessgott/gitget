@@ -73,7 +73,7 @@ func listFiles(path string) []string {
 
 	files := []string{}
 
-	err = filepath.Walk(path,
+	err := filepath.Walk(path,
 		func(dir string, info os.FileInfo, err error) error {
 
 			if err != nil {
@@ -98,10 +98,12 @@ func listFiles(path string) []string {
 
 
 func GetStringInBetween(str string, start string, end string) (result string) {
-    s := strings.Index(str, start)
+	s := strings.Index(str, start)
+	
     if s == -1 {
         return
-    }
+	}
+	
     s += len(start)
     e := strings.Index(str, end)
 
