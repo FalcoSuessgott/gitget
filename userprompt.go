@@ -3,7 +3,12 @@ package main
 import (
 	"fmt"
 	"os"
+
 	"github.com/AlecAivazis/survey/v2"
+)
+
+const (
+	pageSize = 25
 )
 
 func promptList(msg, def string, options []string) string {
@@ -13,12 +18,12 @@ func promptList(msg, def string, options []string) string {
 
 	result := ""
 	prompt := &survey.Select{
-    	Message: msg,
+		Message: msg,
 		Options: options,
 		Default: def,
 	}
 
-	err := survey.AskOne(prompt, &result,  survey.WithPageSize(15))
+	err := survey.AskOne(prompt, &result, survey.WithPageSize(pageSize))
 
 	if err != nil {
 		fmt.Println("Exiting.")
@@ -30,17 +35,16 @@ func promptList(msg, def string, options []string) string {
 	return result
 }
 
-func multiSelect(msg string, elements []string) []string{
-	
+func multiSelect(msg string, elements []string) []string {
 	fmt.Printf("\x1b[?7l")
-	selectedFiles := []string{}
 
+	selectedFiles := []string{}
 	prompt := &survey.MultiSelect{
 		Message: msg,
 		Options: elements,
 	}
-	
-	err := survey.AskOne(prompt, &selectedFiles, survey.WithPageSize(75))
+
+	err := survey.AskOne(prompt, &selectedFiles, survey.WithPageSize(pageSize))
 
 	if err != nil {
 		fmt.Println("Exiting.")
