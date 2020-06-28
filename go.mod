@@ -13,6 +13,8 @@ require (
 	github.com/schollz/progressbar/v3 v3.3.4 // indirect
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
 	github.com/xanzy/go-gitlab v0.32.1
+	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
+	golang.org/x/tools v0.0.0-20200308013534-11ec41452d41
 	gopkg.in/src-d/go-billy.v4 v4.3.2
 	gopkg.in/src-d/go-git.v4 v4.13.1
 )

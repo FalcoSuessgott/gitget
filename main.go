@@ -1,76 +1,76 @@
-package main 
+package main
 
 import (
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/atotto/clipboard"
 	"github.com/disiqueira/gotree"
-    "github.com/atotto/clipboard"
 )
 
 var (
-    url string
-    err error
-    r Repository
+	err error
 )
 
-//TODO: format code
-//SSH clone
+func main() {
+	url := ""
 
-func main(){
-    if len(os.Args) > 2 {
-        fmt.Println("Too many arguments. Exiting.")
-        os.Exit(1)
-    }
+	if len(os.Args) > 2 {
+		fmt.Println("Too many arguments. Exiting.")
+		os.Exit(1)
+	}
 
-    buf, _ := clipboard.ReadAll()
+	buf, _ := clipboard.ReadAll()
 
-    if len(os.Args) == 1 && isValidGitURL(buf)  {
-        fmt.Println("Using git url from clipboard. ")
-        url = buf
-    } else {
-        if len(os.Args) == 1 {
-            fmt.Println("No git url passed. Exiting.")
-            Usage()
-            os.Exit(1)
-        }
-        url = os.Args[1]
-    }
+	if len(os.Args) == 1 && isGitURL(buf) {
+		fmt.Println("Using git url from clipboard. ")
 
-    r := NewRepository(url)
+		url = buf
+	} else {
+		if len(os.Args) == 1 {
+			fmt.Println("No git url passed. Exiting.")
+			usage()
+			os.Exit(1)
+		}
+		url = os.Args[1]
+	}
 
-    selectedFiles := multiSelect("Select files and directories to be imported", r.indexTree())
-    selectedFilesIndexes := []int{}
+	r := NewRepository(url)
 
-    for _, file := range selectedFiles {
-        index, _ := strconv.Atoi(GetStringInBetween(file, "[", "]"))
-        selectedFilesIndexes = append(selectedFilesIndexes, index)
-    }
+	selectedFiles := multiSelect("Select files and directories to be imported", r.indexTree())
+	selectedFilesIndexes := []int{}
 
-    pwd, _ := os.Getwd()
-    tree := gotree.New(pwd)
+	for _, file := range selectedFiles {
+		index, _ := strconv.Atoi(GetStringInBetween(file, "[", "]"))
+		selectedFilesIndexes = append(selectedFilesIndexes, index)
+	}
 
-    for _, i := range selectedFilesIndexes{
-        tree.AddTree(buildSubdirectoryTree(r.Files[i]))
-        path := strings.Split(r.Files[i], "/")
-        name := path[len(path)-1]
+	pwd, _ := os.Getwd()
+	tree := gotree.New(pwd)
 
-        if !isFile(r.Files[i]) {
-            if CopyFile(r.Files[i], name); err != nil {
-                fmt.Printf("Error while creating file: %s.(Err: %v)\n",r.Files[i], err)
-            }
-        } else {
-            if CopyDir(r.Files[i],name); err != nil {
-                fmt.Printf("Error while creating directory: %s.(Err: %v)\n",r.Files[i], err)
-            }
-        }
-    }
+	for _, i := range selectedFilesIndexes {
+		tree.AddTree(buildSubdirectoryTree(r.Files[i]))
+		path := strings.Split(r.Files[i], "/")
+		name := path[len(path)-1]
 
-    fmt.Println("\nFetched the following files and directories: ")
-    fmt.Println(tree.Print())
-}   
+		if !isFile(r.Files[i]) {
+			if CopyFile(r.Files[i], name); err != nil {
+				fmt.Printf("Error while creating file: %s.(Err: %v)\n", r.Files[i], err)
+			}
+		} else {
+			if CopyDir(r.Files[i], name); err != nil {
+				fmt.Printf("Error while creating directory: %s.(Err: %v)\n", r.Files[i], err)
+			}
+		}
+	}
 
-func Usage() {
-    fmt.Fprintf(os.Stderr, "Usage:\n\tgitget GIT_URL\n")
+	os.RemoveAll(r.Path)
+	fmt.Println("\nFetched the following files and directories: ")
+	fmt.Println(tree.Print())
+}
+
+func usage() {
+	fmt.Fprintf(os.Stderr, "Usage:\n\tgitget GIT_URL\n")
 }
