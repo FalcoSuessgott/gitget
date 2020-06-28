@@ -1,5 +1,5 @@
 # gitget
-Browse through files and directories of git repository and download them to your current working directory (`$PWD`).
+Browse interactively through files and directories of git repositories and download them ntto your current working directory (`$PWD`).
 
 # Installation
 ```sh
