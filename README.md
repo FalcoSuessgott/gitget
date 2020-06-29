@@ -1,5 +1,5 @@
 # gitget
-Browse interactively through files and directories of git repositories and download them ntto your current working directory (`$PWD`).
+Browse interactively through branches, files and directories of a git repository and download them into your current working directory (`$PWD`).
 
 # Supported OS
 * Windows
