@@ -16,6 +16,11 @@ Browse through files and directories of git repository and download them to your
 go get github.com/FalcoSuessgott/gitget
 ```
 
+# Supported OS
+* Windows
+* MacOS
+* Linux
+
 # Usage
 ```
 NAME:
