@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"log"
+	"os"
 	"strconv"
 	"strings"
+
 	"github.com/atotto/clipboard"
 	"github.com/disiqueira/gotree"
 	"github.com/urfave/cli/v2"
@@ -15,12 +16,9 @@ var (
 	err error
 )
 
-
 func main() {
-
-
 	app := &cli.App{
-		Name: "gitget",
+		Name:  "gitget",
 		Usage: "Browse interactively through branches, files and directories of a git repository and download them",
 		Action: func(c *cli.Context) error {
 			err := parseArgs(os.Args)
@@ -28,11 +26,11 @@ func main() {
 				fmt.Println(err)
 				cli.ShowAppHelp(c)
 			}
-		
+
 			return nil
 		},
 		UsageText: "gitget GIT_URL (e.g gitget https://github.com/golang/example)",
-		Version: "1.1.0",
+		Version:   "1.1.0",
 	}
 
 	err := app.Run(os.Args)
@@ -44,20 +42,22 @@ func main() {
 func parseArgs(args []string) error {
 	url := ""
 
-	if len(os.Args) > 2 {
+	if len(args) > 2 {
 		return fmt.Errorf("too many arguments")
 	}
 
 	buf, _ := clipboard.ReadAll()
 
-	if len(os.Args) == 1 && isGitURL(buf) {
+	if len(args) == 1 && isGitURL(buf) {
 		fmt.Println("Using git url from clipboard.")
+
 		url = buf
 	} else {
-		if len(os.Args) == 1 {
+		if len(args) == 1 {
 			return fmt.Errorf("no git url passed")
 		}
-		url = os.Args[1]
+
+		url = args[1]
 	}
 
 	r := NewRepository(url)
