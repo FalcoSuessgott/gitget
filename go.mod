@@ -11,6 +11,7 @@ require (
 	github.com/gobuffalo/packr/v2 v2.8.0 // indirect
 	github.com/markbates/pkger v0.17.0 // indirect
 	github.com/schollz/progressbar/v3 v3.3.4 // indirect
+	github.com/urfave/cli/v2 v2.2.0
 	github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0
 	github.com/xanzy/go-gitlab v0.32.1
 	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073

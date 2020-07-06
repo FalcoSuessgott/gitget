@@ -3,42 +3,64 @@ package main
 import (
 	"fmt"
 	"os"
+	"log"
 	"strconv"
 	"strings"
-
 	"github.com/atotto/clipboard"
 	"github.com/disiqueira/gotree"
+	"github.com/urfave/cli/v2"
 )
 
 var (
 	err error
 )
 
+
 func main() {
+
+
+	app := &cli.App{
+		Name: "gitget",
+		Usage: "Browse interactively through branches, files and directories of a git repository and download them",
+		Action: func(c *cli.Context) error {
+			err := parseArgs(os.Args)
+			if err != nil {
+				fmt.Println(err)
+				cli.ShowAppHelp(c)
+			}
+		
+			return nil
+		},
+		UsageText: "gitget GIT_URL (e.g gitget https://github.com/golang/example)",
+		Version: "1.1.0",
+	}
+
+	err := app.Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func parseArgs(args []string) error {
 	url := ""
 
 	if len(os.Args) > 2 {
-		fmt.Println("Too many arguments. Exiting.")
-		os.Exit(1)
+		return fmt.Errorf("too many arguments")
 	}
 
 	buf, _ := clipboard.ReadAll()
 
 	if len(os.Args) == 1 && isGitURL(buf) {
-		fmt.Println("Using git url from clipboard. ")
-
+		fmt.Println("Using git url from clipboard.")
 		url = buf
 	} else {
 		if len(os.Args) == 1 {
-			fmt.Println("No git url passed. Exiting.")
-			usage()
-			os.Exit(1)
+			return fmt.Errorf("no git url passed")
 		}
 		url = os.Args[1]
 	}
 
 	r := NewRepository(url)
-
 	selectedFiles := multiSelect("Select files and directories to be imported", r.indexTree())
 	selectedFilesIndexes := []int{}
 
@@ -69,8 +91,6 @@ func main() {
 	os.RemoveAll(r.Path)
 	fmt.Println("\nFetched the following files and directories: ")
 	fmt.Println(tree.Print())
-}
 
-func usage() {
-	fmt.Fprintf(os.Stderr, "Usage:\n\tgitget GIT_URL\n")
+	return nil
 }
