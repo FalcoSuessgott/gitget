@@ -2,7 +2,7 @@
 <p align="center">
   <img src="demo.gif" />
 </p>
-Browse interactively through branches, files and directories of a git repository and download them into your current working directory (`$PWD`).
+Browse interactively through branches, files and directories of a git repository and download them into your current working directory.
 
 # Features
 * browse and checkout available branches
