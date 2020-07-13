@@ -7,10 +7,12 @@ import (
 	"strings"
 
 	"github.com/disiqueira/gotree"
+	"github.com/go-git/go-billy/v5/memfs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/storer"
 	ssh2 "github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	"github.com/go-git/go-git/v5/storage/memory"
 	giturls "github.com/whilp/git-urls"
 	"golang.org/x/crypto/ssh"
 )
@@ -63,6 +65,9 @@ func getBranches(repo *git.Repository) ([]string, error) {
 }
 
 func cloneRepo(url string) (*git.Repository, string, error) {
+	fs := memfs.New()
+	storer := memory.NewStorage()
+
 	var r *git.Repository
 
 	dir, err := ioutil.TempDir("", "tmp-dir")
@@ -83,7 +88,7 @@ func cloneRepo(url string) (*git.Repository, string, error) {
 			Auth:     auth,
 		})
 	} else {
-		r, err = git.PlainClone(dir, false, &git.CloneOptions{
+		r, err = git.Clone(storer, fs, &git.CloneOptions{
 			URL:      url,
 			Tags:     git.NoTags,
 			Progress: os.Stdout,
@@ -124,6 +129,43 @@ func checkoutBranch(repo *git.Repository, branch string) error {
 	return err
 }
 
+func test(repo *git.Repository) []string {
+	files := []string{}
+	w, _ := repo.Worktree()
+
+	dir, _ := w.Filesystem.ReadDir(w.Filesystem.Root())
+
+	files = append(files, w.Filesystem.Root())
+
+	for _, f := range dir {
+		if f.IsDir(){
+			files = append(files, subDir(w, f.Name())...)
+		} else {
+			files = append(files, f.Name())
+		}
+	}
+
+	return files
+}
+
+func subDir(w *git.Worktree, path string) []string {
+	files := []string{}
+	dir, _ := w.Filesystem.ReadDir(path)
+
+	files = append(files, path)
+
+	for _, f := range dir {
+		if f.IsDir() {
+			subPath := path + "/" + f.Name()
+			subDir(w, subPath)
+		} else {
+			files = append(files, path + "/" + f.Name())
+		}
+	}
+
+	return files
+}
+
 func NewRepository(url string) Repository {
 	if !isGitURL(url) {
 		fmt.Println("Invalid git url. Exiting.")
@@ -158,7 +200,8 @@ func NewRepository(url string) Repository {
 		fmt.Println("Error while checking out branch " + branch + " .Exiting.")
 	}
 
-	files := listFiles(path)
+	//files := listFiles(path)
+	files := test(repo)
 	tree, err := buildDirectoryTree(url, path)
 
 	if err != nil {
