@@ -1,4 +1,4 @@
-package main
+package repo
 
 import (
 	"fmt"
@@ -13,8 +13,13 @@ import (
 	ssh2 "github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	giturls "github.com/whilp/git-urls"
 	"golang.org/x/crypto/ssh"
+
+	"github.com/FalcoSuessgott/gitget/fs"
+	t "github.com/FalcoSuessgott/gitget/tree"
+	"github.com/FalcoSuessgott/gitget/ui"
 )
 
+// Repository represents a repository.
 type Repository struct {
 	URL      string
 	Repo     *git.Repository
@@ -25,7 +30,8 @@ type Repository struct {
 	Tree     gotree.Tree
 }
 
-func isGitURL(rawURL string) bool {
+// IsGitURL returns true if the url is a valid giturl.
+func IsGitURL(rawURL string) bool {
 	parsedURL, err := giturls.Parse(rawURL)
 	if err == nil && parsedURL.IsAbs() && parsedURL.Hostname() != "" {
 		return true
@@ -39,7 +45,8 @@ func isSSHURL(rawURL string) bool {
 	return err == nil && (url.Scheme == "git" || url.Scheme == "ssh")
 }
 
-func repoName(repoURL string) string {
+// Name returns the namespace of git url.
+func Name(repoURL string) string {
 	u, _ := giturls.Parse(repoURL)
 	return u.Path[1:]
 }
@@ -116,16 +123,15 @@ func checkoutBranch(repo *git.Repository, branch string) error {
 		return err
 	}
 
-	err = w.Checkout(&git.CheckoutOptions{
+	return w.Checkout(&git.CheckoutOptions{
 		Branch: plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", branch)),
 		Force:  true,
 	})
-
-	return err
 }
 
+// NewRepository returns a new repository struct.
 func NewRepository(url string) Repository {
-	if !isGitURL(url) {
+	if !IsGitURL(url) {
 		fmt.Println("Invalid git url. Exiting.")
 		os.Exit(1)
 	}
@@ -151,15 +157,16 @@ func NewRepository(url string) Repository {
 		fmt.Println("\nChecking out the only branch: " + branches[0])
 		branch = branches[0]
 	} else {
-		branch = promptList("Choose the branch to be checked out", "master", branches)
+		branch = ui.PromptList("Choose the branch to be checked out", "master", branches)
 	}
 
-	if checkoutBranch(repo, branch); err != nil {
+	err = checkoutBranch(repo, branch)
+	if err != nil {
 		fmt.Println("Error while checking out branch " + branch + " .Exiting.")
 	}
 
-	files := listFiles(path)
-	tree, err := buildDirectoryTree(url, path)
+	files := fs.ListFiles(path)
+	tree, err := t.BuildDirectoryTree(url, path)
 
 	if err != nil {
 		fmt.Println(err)

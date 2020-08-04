@@ -1,4 +1,4 @@
-package main
+package fs
 
 import (
 	"errors"
@@ -7,19 +7,25 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
+)
+
+var (
+	errSourceNoDir = errors.New("source is not a directory")
+	errDestExist   = errors.New("destination already exists")
 )
 
 const (
 	gitDir = ".git"
 )
 
-func isFile(path string) bool {
+// IsFile returns true if the specified path is file.
+func IsFile(path string) bool {
 	file, _ := os.Stat(path)
 	return file.IsDir()
 }
 
-func listFiles(path string) []string {
+// ListFiles returns a list of files from the specified path.
+func ListFiles(path string) []string {
 	files := []string{}
 	err := filepath.Walk(path, func(dir string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -42,25 +48,9 @@ func listFiles(path string) []string {
 	return files
 }
 
-func GetStringInBetween(str string, start string, end string) (result string) {
-	s := strings.Index(str, start)
-
-	if s == -1 {
-		return
-	}
-
-	s += len(start)
-	e := strings.Index(str, end)
-
-	if e == -1 {
-		return
-	}
-
-	return str[s:e]
-}
-
-//https://gist.github.com/r0l1/92462b38df26839a3ca324697c8cba04
+// CopyFile copies a file from src to dest.
 func CopyFile(src, dst string) (err error) {
+	//https://gist.github.com/r0l1/92462b38df26839a3ca324697c8cba04
 	in, err := os.Open(src)
 	if err != nil {
 		return nil
@@ -101,8 +91,9 @@ func CopyFile(src, dst string) (err error) {
 	return nil
 }
 
-//https://gist.github.com/r0l1/92462b38df26839a3ca324697c8cba04
+// CopyDir Copies a Directory recursive to a the destination.
 func CopyDir(src string, dst string) (err error) {
+	//https://gist.github.com/r0l1/92462b38df26839a3ca324697c8cba04
 	src = filepath.Clean(src)
 	dst = filepath.Clean(dst)
 
@@ -112,7 +103,7 @@ func CopyDir(src string, dst string) (err error) {
 	}
 
 	if !si.IsDir() {
-		return errors.New("source is not a directory")
+		return errSourceNoDir
 	}
 
 	_, err = os.Stat(dst)
@@ -121,7 +112,7 @@ func CopyDir(src string, dst string) (err error) {
 	}
 
 	if err == nil {
-		return errors.New("destination already exists")
+		return errDestExist
 	}
 
 	err = os.MkdirAll(dst, si.Mode())

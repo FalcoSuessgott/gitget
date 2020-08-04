@@ -1,7 +1,6 @@
-package main
+package tree
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,28 +9,11 @@ import (
 	"github.com/go-git/go-git/v5"
 )
 
-func (r *Repository) indexTree() []string {
-	tree := []string{}
-
-	for i, element := range strings.Split(r.Tree.Print(), "\n") {
-		if i == 0 {
-			tree = append(tree, element)
-			continue
-		}
-
-		tree = append(tree, fmt.Sprintf("[%02d] %s", i, element))
-	}
-
-	return tree[:len(tree)-1]
-}
-
-func buildDirectoryTree(url, path string) (gotree.Tree, error) {
-	i := 0
+// BuildDirectoryTree builds the tree for the root directory.
+func BuildDirectoryTree(url, path string) (gotree.Tree, error) {
 	name := path[strings.LastIndex(path, "/")+1:]
-	tree := gotree.New(repoName(url))
-
-	if filepath.Walk(path, func(dir string, info os.FileInfo, err error) error {
-
+	tree := gotree.New(url)
+	err := filepath.Walk(path, func(dir string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -45,28 +27,28 @@ func buildDirectoryTree(url, path string) (gotree.Tree, error) {
 		}
 
 		if info.IsDir() && info.Name() != name {
-			tmpTree := buildSubdirectoryTree(dir)
-			i += len(tmpTree.Items())
+			tmpTree := BuildSubdirectoryTree(dir)
 			tree.AddTree(tmpTree)
 			return filepath.SkipDir
 		}
 		return nil
-	}); err != nil {
+	})
+
+	if err != nil {
 		return nil, err
 	}
 
 	return tree, nil
 }
 
-func buildSubdirectoryTree(dir string) gotree.Tree {
+// BuildSubdirectoryTree builds the tree for any subdirectory.
+func BuildSubdirectoryTree(dir string) gotree.Tree {
 	dirName := getDirName(dir)
 	tree := gotree.New(dirName)
-
-	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		// if directory, step into and build tree
 		if info.IsDir() && dirName != info.Name() {
-			tree.AddTree(buildSubdirectoryTree(path))
+			tree.AddTree(BuildSubdirectoryTree(path))
 			return filepath.SkipDir
 		}
 
@@ -79,9 +61,18 @@ func buildSubdirectoryTree(dir string) gotree.Tree {
 		return nil
 	})
 
+	if err != nil {
+		return nil
+	}
+
 	return tree
 }
 
 func getDirName(dir string) string {
 	return dir[strings.LastIndex(dir, "/")+1:]
+}
+
+// NewTree returns a new gotree struct.
+func NewTree(pwd string) gotree.Tree {
+	return gotree.New(pwd)
 }
