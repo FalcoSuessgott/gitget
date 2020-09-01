@@ -1,4 +1,4 @@
-# gitget [![Go Report Card](https://goreportcard.com/badge/github.com/FalcoSuessgott/gitget)](https://goreportcard.com/report/github.com/FalcoSuessgott/gitget)
+# gitget  [![Go Report Card](https://goreportcard.com/badge/github.com/FalcoSuessgott/gitget)](https://goreportcard.com/report/github.com/FalcoSuessgott/gitget)
 
 <p align="center">
   <img src="demo.gif" />
