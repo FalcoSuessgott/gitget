@@ -1,7 +1,5 @@
-# gitget
-[![GoDoc](https://godoc.org/github.com/blang/semver/v4?status.svg)](https://godoc.org/github.com/FalcoSuessgott/gitget) 
-[![Coverage Status](https://img.shields.io/coveralls/blang/semver.svg)](https://coveralls.io/r/FalcoSuessgott/gitget?branch=master) 
-[![Go Report Card](https://goreportcard.com/badge/github.com/FalcoSuessgott/gitget)](https://goreportcard.com/report/github.com/FalcoSuessgott/gitget)
+# gitget [![GoDoc](https://godoc.org/github.com/blang/semver/v4?status.svg)](https://godoc.org/github.com/FalcoSuessgott/gitget) [![Coverage Status](https://img.shields.io/coveralls/blang/semver.svg)](https://coveralls.io/r/FalcoSuessgott/gitget?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/FalcoSuessgott/gitget)](https://goreportcard.com/report/github.com/FalcoSuessgott/gitget)
+
 <p align="center">
   <img src="demo.gif" />
 </p>
